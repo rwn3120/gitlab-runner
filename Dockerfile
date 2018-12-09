@@ -7,4 +7,4 @@ RUN echo 'deb http://deb.debian.org/debian sid main contrib non-free' > /etc/apt
         docker.io=18.06.1+dfsg1-2 gitlab-runner &&\
     apt-get clean
 
-COPY register-runner.sh /usr/bin/register
+COPY register.sh /usr/bin/register
