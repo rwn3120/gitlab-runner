@@ -16,7 +16,7 @@ Register new gitlab runner.
 
 Options:
     -T <token>  gitlab token (mandatory)
-    -u <url>    gitlab url (mandatory)
+    -U <url>    gitlab url (mandatory)
     -r <name>   runner name
     -i <image>  default image
     -t <tags>   runner tags
@@ -31,10 +31,10 @@ OPTIND=1
 while getopts "r:d:t:U:i:T:c:h" OPT; do
     case "${OPT}" in
         "r")    RUNNER="${OPTARG}";;
-        "t")    TOKEN="${OPTARG}";;
+        "T")    TOKEN="${OPTARG}";;
         "U")    URL="${OPTARG}";;
         "i")    IMAGE="${OPTARG}";;
-        "T")    TAGS="${OPTARG}";;
+        "t")    TAGS="${OPTARG}";;
         "c")    CONTAINER_NAME="${OPTARG}";;
         "h"|"?")show_help;;
         "*")    echo "Unknown option: -${OPTARG}. Run with -h to display help";;
@@ -59,7 +59,7 @@ gitlab-ci-multi-runner register \
     --docker-image "${IMAGE:-"debian:sid-slim"}" \
     --url "${URL}" \
     --registration-token "${TOKEN}" \
-    --description "${RUNNER:gitlab-runner}" \
+    --description "${RUNNER}" \
     --tag-list "${TAGS}" \
     --run-untagged \
     --locked="${LOCKED:-"false"}"
