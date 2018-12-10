@@ -1,15 +1,16 @@
 #!/bin/bash -eu
-function dbg() { echo -e "\e[94m${@}\e[39m"; }
-function inf() { echo -e "\e[97m${@}\e[39m"; }
-function out() { echo -e "\e[32m${@}\e[39m"; }
-function wrn() { echo -e "\e[93m${@}\e[39m" 1>&2; }
-function err() { echo -e "\e[31m${@}\e[39m" 1>&2; }
+function dbg() { echo -e "\\e[94m${*}\\e[39m"; }
+function inf() { echo -e "\\e[97m${*}\\e[39m"; }
+function out() { echo -e "\\e[32m${*}\\e[39m"; }
+function wrn() { echo -e "\\e[93m${*}\\e[39m" 1>&2; }
+function err() { echo -e "\\e[31m${*}\\e[39m" 1>&2; }
 function fail() { err "${@}"; exit 254; }
 
 SCRIPT=$(readlink -f "${0}")
 SCRIPT_NAME=$(basename "${SCRIPT}")
 
 DEFAULT_TAGS="docker"
+DEFAULT_EXECUTOR="docker"
 DEFAULT_IMAGE="debian:sid-slim"
 
 show_help() {
@@ -18,12 +19,13 @@ inf "Usage: ${SCRIPT_NAME} [OPTIONS]
 Register new gitlab runner.
 
 Options:
-    -N <name>   runner name (mandatory)
-    -U <url>    gitlab url (mandatory)
-    -T <token>  gitlab token (mandatory)
-    -i <image>  default image (default ${DEFAULT_IMAGE})
-    -t <tags>   runner tags (default ${DEFAULT_TAGS})
-    -h,-?       display this help and exit
+    -N <name>       runner name (mandatory)
+    -U <url>        gitlab url (mandatory)
+    -T <token>      gitlab token (mandatory)
+    -e <executor>   executor (docker or shell, default ${DEFAULT_EXECUTOR})
+    -i <image>      default image (default ${DEFAULT_IMAGE})
+    -t <tags>       runner tags (default ${DEFAULT_TAGS})
+    -h,-?           display this help and exit
 
 Environments:
     TOKEN, URL, NAME, IMAGE, TAGS
@@ -36,11 +38,12 @@ Examples:
 }
 
 OPTIND=1
-while getopts "N:T:U:i:t:c:h" OPT; do
+while getopts "N:T:U:e:i:t:h" OPT; do
     case "${OPT}" in
         "N")    NAME="${OPTARG}";;
         "T")    TOKEN="${OPTARG}";;
         "U")    URL="${OPTARG}";;
+        "e")    EXECUTOR="${OPTARG}";;
         "i")    IMAGE="${OPTARG}";;
         "t")    TAGS="${OPTARG}";;
         "h"|"?")show_help;;
@@ -54,17 +57,24 @@ if [[ ! ${TOKEN+x} ]]; then fail "Missing -T <token>"; fi
 if [[ ! ${URL+x} ]]; then fail "Missing -U <url>"; fi
 TAGS="${TAGS:-"${DEFAULT_TAGS}"}"
 IMAGE="${IMAGE:-"${DEFAULT_IMAGE}"}"
+EXECUTOR="${EXECUTOR:-"${DEFAULT_EXECUTOR}"}"
+
 
 REGEX="^[a-z0-9]([a-z0-9-]*[a-z0-9]+)*$"
 if [[ ! "${NAME}" =~ ${REGEX} ]]; then
     fail "Runner name ${NAME} does not match ${REGEX}"
 fi
+REGEX="^(docker|shell)$"
+if [[ ! "${EXECUTOR}" =~ ${REGEX} ]]; then
+    fail "Unsupported runner executor: ${EXECUTOR}"
+fi
+
 
 gitlab-runner status 2>/dev/null || (inf "Starting runner"; gitlab-runner start)
 inf "Registering runner as ${NAME}"
 gitlab-runner register \
     --non-interactive \
-    --executor "docker" \
+    --executor "${EXECUTOR}" \
     --docker-image "${IMAGE:-"debian:sid-slim"}" \
     --url "${URL}" \
     --registration-token "${TOKEN}" \
@@ -75,7 +85,8 @@ gitlab-runner register \
 trap handleSignal EXIT
 unregister() {
     trap - EXIT
-    inf "\nUnregistering runner ${NAME}"
+    echo
+    inf "Unregistering runner ${NAME}"
     gitlab-runner unregister \
         --name "${NAME}"
 }
@@ -83,7 +94,7 @@ handleSignal() {
     unregister    
     exit 1
 }
-while [ 1 ]; do
+while true; do
     gitlab-runner status
     sleep 5
 done
