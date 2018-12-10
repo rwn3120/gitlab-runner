@@ -9,7 +9,6 @@ function fail() { err "${@}"; exit 254; }
 SCRIPT=$(readlink -f "${0}")
 SCRIPT_NAME=$(basename "${SCRIPT}")
 
-DEFAULT_TAGS="docker"
 DEFAULT_EXECUTOR="docker"
 DEFAULT_IMAGE="debian:sid-slim"
 
@@ -24,15 +23,15 @@ Options:
     -T <token>      gitlab token (mandatory)
     -e <executor>   executor (docker or shell, default ${DEFAULT_EXECUTOR})
     -i <image>      default image (default ${DEFAULT_IMAGE})
-    -t <tags>       runner tags (default ${DEFAULT_TAGS})
+    -t <tags>       runner tags (default same as executor)
     -h,-?           display this help and exit
 
 Environments:
-    TOKEN, URL, NAME, IMAGE, TAGS
+    NAME, URL, TOKEN, EXECUTOR, IMAGE, TAGS
 
 Examples:
-    ${SCRIPT_NAME} -R my-runner -U our.gitlab.com -T token-value
-    NAME=my-runner URL=our.gitlab.com TOKEN=token-value ${SCRIPT_NAME}
+    ${SCRIPT_NAME} -N runner-with-docker -U our.gitlab.com -T token-value
+    NAME=runner-with-docker URL=our.gitlab.com TOKEN=token-value ${SCRIPT_NAME}
 "
         exit 1
 }
@@ -55,9 +54,9 @@ shift "$((OPTIND-1))"
 if [[ ! ${NAME+x} ]]; then fail "Missing -N <name>"; fi
 if [[ ! ${TOKEN+x} ]]; then fail "Missing -T <token>"; fi
 if [[ ! ${URL+x} ]]; then fail "Missing -U <url>"; fi
-TAGS="${TAGS:-"${DEFAULT_TAGS}"}"
-IMAGE="${IMAGE:-"${DEFAULT_IMAGE}"}"
 EXECUTOR="${EXECUTOR:-"${DEFAULT_EXECUTOR}"}"
+TAGS="${TAGS:-"${EXECUTOR}"}"
+IMAGE="${IMAGE:-"${DEFAULT_IMAGE}"}"
 
 
 REGEX="^[a-z0-9]([a-z0-9-]*[a-z0-9]+)*$"
