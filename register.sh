@@ -61,7 +61,7 @@ if [[ ! "${RUNNER}" =~ ${REGEX} ]]; then
 fi
 
 inf "Registering ${RUNNER}"
-gitlab-ci-multi-runner register \
+gitlab-runner register \
     --non-interactive \
     --executor "docker" \
     --docker-image "${IMAGE:-"debian:sid-slim"}" \
