@@ -18,7 +18,7 @@ inf "Usage: ${SCRIPT_NAME} [OPTIONS]
 Register new gitlab runner.
 
 Options:
-    -R <runner> runner name (mandatory)
+    -N <name>   runner name (mandatory)
     -U <url>    gitlab url (mandatory)
     -T <token>  gitlab token (mandatory)
     -i <image>  default image (default ${DEFAULT_IMAGE})
@@ -26,19 +26,19 @@ Options:
     -h,-?       display this help and exit
 
 Environments:
-    TOKEN, URL, RUNNER, IMAGE, TAGS
+    TOKEN, URL, NAME, IMAGE, TAGS
 
 Examples:
     ${SCRIPT_NAME} -R my-runner -U our.gitlab.com -T token-value
-    RUNNER=my-runner URL=our.gitlab.com TOKEN=token-value ${SCRIPT_NAME}
+    NAME=my-runner URL=our.gitlab.com TOKEN=token-value ${SCRIPT_NAME}
 "
         exit 1
 }
 
 OPTIND=1
-while getopts "R:T:U:i:t:c:h" OPT; do
+while getopts "N:T:U:i:t:c:h" OPT; do
     case "${OPT}" in
-        "R")    RUNNER="${OPTARG}";;
+        "N")    NAME="${OPTARG}";;
         "T")    TOKEN="${OPTARG}";;
         "U")    URL="${OPTARG}";;
         "i")    IMAGE="${OPTARG}";;
@@ -49,25 +49,43 @@ while getopts "R:T:U:i:t:c:h" OPT; do
 done
 shift "$((OPTIND-1))"   
 
-if [[ ! ${RUNNER+x} ]]; then fail "Missing argument: runner"; fi
-if [[ ! ${TOKEN+x} ]]; then fail "Missing argument: token"; fi
-if [[ ! ${URL+x} ]]; then fail "Missing argument: url"; fi
+if [[ ! ${NAME+x} ]]; then fail "Missing -N <name>"; fi
+if [[ ! ${TOKEN+x} ]]; then fail "Missing -T <token>"; fi
+if [[ ! ${URL+x} ]]; then fail "Missing -U <url>"; fi
 TAGS="${TAGS:-"${DEFAULT_TAGS}"}"
 IMAGE="${IMAGE:-"${DEFAULT_IMAGE}"}"
 
-REGEX="^[a-z0-9]([a-z0-9-]*[a-z]+)*$"
-if [[ ! "${RUNNER}" =~ ${REGEX} ]]; then
-    fail "Runner name ${RUNNER} does not match ${REGEX}"
+REGEX="^[a-z0-9]([a-z0-9-]*[a-z0-9]+)*$"
+if [[ ! "${NAME}" =~ ${REGEX} ]]; then
+    fail "Runner name ${NAME} does not match ${REGEX}"
 fi
 
-inf "Registering ${RUNNER}"
+gitlab-runner status 2>/dev/null || (inf "Starting runner"; gitlab-runner start)
+inf "Registering runner as ${NAME}"
 gitlab-runner register \
     --non-interactive \
     --executor "docker" \
     --docker-image "${IMAGE:-"debian:sid-slim"}" \
     --url "${URL}" \
     --registration-token "${TOKEN}" \
-    --description "${RUNNER}" \
+    --name "${NAME}" \
     --tag-list "${TAGS}" \
     --run-untagged \
     --locked="${LOCKED:-"false"}"
+trap handleSignal EXIT
+unregister() {
+    trap - EXIT
+    inf "\nUnregistering runner ${NAME}"
+    gitlab-runner unregister \
+        --name "${NAME}"
+}
+handleSignal() {
+    unregister    
+    exit 1
+}
+while [ 1 ]; do
+    gitlab-runner status
+    sleep 5
+done
+
+unregister
