@@ -31,5 +31,5 @@ shift "$((OPTIND-1))"
 
 if [[ ! ${NAME+x} ]]; then fail "Missing -N <name>"; fi
 
-docker stop "${NAME}" 2>/dev/null || wrn "Container ${NAME} is not running"
+docker stop -t 10 "${NAME}" 2>/dev/null || wrn "Container ${NAME} is not running"
 docker rm "${NAME}" 2>/dev/null || wrn "Container ${NAME} does not exist"
