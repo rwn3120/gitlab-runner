@@ -10,7 +10,7 @@ SCRIPT_NAME=$(basename "${SCRIPT}")
 show_help() {
 inf "Usage: ${SCRIPT_NAME} [OPTIONS] 
 
-Register new gitlab runner.
+Stop gitlab runner.
 
 Options:
     -N <name>   runner name (mandatory)
