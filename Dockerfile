@@ -6,7 +6,7 @@ RUN echo 'deb http://deb.debian.org/debian sid main contrib non-free' > /etc/apt
     apt-get install -y \
         docker.io=18.06.1+dfsg1-2 gitlab-runner procps vim curl mc && \
     apt-get clean && \
-    mkdir -p /root/.docker \
+    mkdir -p /root/.docker && \
     usermod -G docker -a gitlab-runner
 
 COPY entrypoint runner /usr/bin/
