@@ -69,7 +69,7 @@ if [[ ! "${EXECUTOR}" =~ ${REGEX} ]]; then
 fi
 
 gitlab-runner status 2>/dev/null || (inf "Starting runner ${NAME}"; gitlab-runner start)
-inf "Registering runner ${NAME}"
+inf "Registering ${EXECUTOR} runner ${NAME}"
 gitlab-runner register \
     --non-interactive \
     --executor "${EXECUTOR}" \
@@ -84,7 +84,7 @@ gitlab-runner register \
 trap handleKill SIGINT SIGTERM
 unregister() {
     trap - SIGINT SIGTERM
-    inf "\nUnregistering runner ${NAME}"
+    inf "\\nUnregistering runner ${NAME}"
     gitlab-runner unregister \
         --name "${NAME}"
 }
