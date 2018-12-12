@@ -26,7 +26,7 @@ for i in "${!ARGS[@]}"; do
         CONTAINER_NAME="${ARGS[$((i+1))]}"
     fi
 done
-NAME="${NAME:-${CONTAINER_NAME:-$(generateName)}}"
+export NAME="${NAME:-${CONTAINER_NAME:-$(generateName)}}"
 
 if [ "${INTERACTIVE:-"false"}" == "true" ]; then
     RUNNING_MODE="-it"
