@@ -26,16 +26,16 @@ curl https://raw.githubusercontent.com/rwn3120/gitlab-runner/master/start-gitlab
 curl https://raw.githubusercontent.com/rwn3120/gitlab-runner/master/stop-gitlab-runner.sh > stop-gitlab-runner.sh
 ```
 2. Run `stop-gitlab-runner.sh` script:
-    * docker executor:
+* docker executor:
 ```
 ./stop-gitlab-runner.sh -N "docker-executor"
 ```
-    * shell executor:
+* shell executor:
 ```
 ./stop-gitlab-runner.sh -N "shell-executor"
 ```
 ## Usage
-### start-gitlab-runner.sh
+### `start-gitlab-runner.sh`
 ```
 Usage: start-gitlab-runner.sh [OPTIONS]
 
@@ -57,7 +57,7 @@ Examples:
     runner -N runner-with-docker -U our.gitlab.com -T token-value
     NAME=runner-with-docker URL=our.gitlab.com TOKEN=token-value runner
 ```
-### stop-gitlab-runner.sh
+### `stop-gitlab-runner.sh`
 ```
 Usage: stop-gitlab-runner.sh [OPTIONS] 
 
@@ -68,7 +68,7 @@ Options:
     -h,-?       display this help and exit
 ```
 
-# Run GitLab runner manually
+# Run GitLab runner in docker manually
 1. Download latest image
 ```
 docker pull radowan/gitlab-runner
