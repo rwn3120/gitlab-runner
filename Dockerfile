@@ -4,10 +4,12 @@ RUN echo 'deb http://deb.debian.org/debian sid main contrib non-free' > /etc/apt
     cat /etc/apt/sources.list && \
     apt-get update -y && \
     apt-get install -y \
-        docker.io=18.06.1+dfsg1-2 gitlab-runner procps vim curl mc && \
+        docker.io=18.06.1+dfsg1-2 procps vim curl mc && \
     apt-get clean && \
-    mkdir -p /root/.docker && \
-    echo 'DAEMON_ARGS="run --working-directory /var/lib/gitlab-runner --config /etc/gitlab-runner/config.toml --service gitlab-runner --syslog --user root"' >> "/etc/default/gitlab-runner"
+    curl -o /usr/local/bin/gitlab-runner "https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64" && \
+    chmod +x /usr/local/bin/gitlab-runner && \
+    mkdir -p /root/gitlab-runner /root/.docker && \
+    gitlab-runner install --user=root --working-directory=/root/gitlab-runner 
 
 COPY entrypoint runner /usr/bin/
 
