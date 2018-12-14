@@ -5,7 +5,7 @@ SCRIPT=$(readlink -f "${0}")
 SCRIPT_NAME=$(basename "${SCRIPT}")
 
 function generateName() {
-    echo "docker-$(hostname -s)-$(date +"%y%m%d-%H%M")"
+    echo "docker-$(hostname -s)-$(date +"%Y-%m-%d_%H-%M-%S")"
 }
 
 IMAGE="radowan/gitlab-runner"
