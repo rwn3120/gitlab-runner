@@ -31,5 +31,6 @@ shift "$((OPTIND-1))"
 
 if [[ ! ${NAME+x} ]]; then fail "Missing -N <name>"; fi
 
-docker stop -t 10 "${NAME}" 2>/dev/null || wrn "Container ${NAME} is not running"
-docker rm "${NAME}" 2>/dev/null || wrn "Container ${NAME} does not exist"
+echo "ps -a | grep -E \"\\s+gitlab-runner$\" | awk '{print \$1}' | xargs kill"  | docker exec -i "${NAME}" bash - || wrn "Could not unregister runner with name ${NAME}"
+docker stop -t 10 "${NAME}" 2>/dev/null || inf "Container ${NAME} stopped"
+docker rm -f "${NAME}" 2>/dev/null || inf "Container ${NAME} removed"

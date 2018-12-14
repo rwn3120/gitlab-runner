@@ -68,7 +68,6 @@ if [[ ! "${EXECUTOR}" =~ ${REGEX} ]]; then
     fail "Unsupported runner executor: ${EXECUTOR}"
 fi
 
-gitlab-runner status 2>/dev/null || (inf "Starting runner ${NAME}"; gitlab-runner start)
 inf "Registering ${EXECUTOR} runner ${NAME}"
 gitlab-runner register \
     --non-interactive \
@@ -81,22 +80,19 @@ gitlab-runner register \
     --run-untagged \
     --locked="${LOCKED:-"false"}"
 
-trap handleKill SIGINT SIGTERM
+trap 'handleSignal $?' SIGINT SIGTERM ERR
 unregister() {
-    trap - SIGINT SIGTERM
+    trap - SIGINT SIGTERM ERR
     inf "\\nUnregistering runner ${NAME}"
     gitlab-runner unregister \
         --name "${NAME}"
 }
-handleKill() {
-    err "Killed!"
+handleSignal() {
+    err "Signal ${1} ($(kill -l "${1}" || echo "error")) received"
     unregister
     exit 1
 }
 
-while true; do
-    gitlab-runner status
-    sleep "${REFRESH_STATUS_INTERVAL:-10}"
-done
+/usr/local/bin/gitlab-runner run --working-directory /root/gitlab-runner --config /etc/gitlab-runner/config.toml --service gitlab-runner --syslog --user root
 
 unregister
